@@ -11,6 +11,7 @@ import re
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -31,6 +32,11 @@ def read_documents():
 		sentences = parse_document(document);
 		documents += [(documentName, sentences)]
 	return documents
+
+def read_document(documentName):
+	document = open("./documents/"+documentName, "r", encoding='utf-8', errors='ignore').read()
+	sentences = parse_document(document);
+	return sentences;
 
 def parse_document(document):
 	bs = BeautifulSoup(document, features="html.parser")
@@ -139,8 +145,8 @@ if __name__ =="__main__":
 	tfidf = calculate_tfidf(LOAD_FROM_PICKLE)
 	print(tfidf);
 
-
-
+	sentences = read_document("06_1.xml")
+	print(sentences);
 
 
 
