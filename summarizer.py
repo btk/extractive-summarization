@@ -8,10 +8,9 @@ import sklearn as sk
 import numpy as np
 import re
 
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics.pairwise import linear_kernel
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -57,33 +56,27 @@ def preprocess(lines):
 	bookName = "";
 
 	for line in lines:
-		# Combine book name - description together
-		if (lineCounter % 2) == 0:
-			bookName = line;
-		else:
+		line = line.strip(); # Strip all extra white spaces
+		line = line.translate({ord(k): None for k in digits}) # Remove all numbers in the string
+		# I will turn all letters to lower case since our goal is to classify depending on topic
+		line = line.lower();
 
-			line = bookName + " " + line;
-			line = line.strip(); # Strip all extra white spaces
-			line = line.translate({ord(k): None for k in digits}) # Remove all numbers in the string
-			# I will turn all letters to lower case since our goal is to classify depending on topic
-			line = line.lower();
+		# Expand contaracted words.
+		line = decontracted(line);
 
-			# Expand contaracted words.
-			line = decontracted(line);
+		# remove punctuations
+		line = line.translate(str.maketrans('', '', string.punctuation));
 
-			# remove punctuations
-			line = line.translate(str.maketrans('', '', string.punctuation));
+		# remove the stop words
+		line = remove_stopwords(line);
 
-			# remove the stop words
-			line = remove_stopwords(line);
+		# instead of stemming words, I will lemmatize them with wordnet article database
+		line = lemmatize_words(line);
 
-			# instead of stemming words, I will lemmatize them with wordnet article database
-			line = lemmatize_words(line);
+		# remove single letter words in the text like: j. f. kennedy => kennedy
+		line = ' '.join( [w for w in line.split() if len(w)>1] )
 
-			# remove single letter words in the text like: j. f. kennedy => kennedy
-			line = ' '.join( [w for w in line.split() if len(w)>1] )
-
-			processed += [line];
+		processed += [line];
 
 		lineCounter+=1;
 
@@ -123,31 +116,35 @@ def lemmatize_words(text):
 
 def calculate_tfidf(load_from_pickle):
 	if(load_from_pickle):
-		tfidf = pickle.load(open("tfidf.pickle", "rb" ) )
+		transformer = pickle.load(open("tfidf.pickle", "rb" ))
 	else:
 		documents = read_documents()
 		corpus = create_document_collection(documents)
 
-		vect = CountVectorizer()
-		# get counts of each token (word) in text data
-		X = vect.fit_transform(corpus)
-		# initialize tf-idf transformer object
-		transformer = TfidfTransformer()
-		tfidf = transformer.fit_transform(X)
+		transformer = TfidfVectorizer()
+		tfidf = transformer.fit_transform(corpus)
 		with open("tfidf.pickle", 'wb') as handle:
-			pickle.dump(tfidf, handle)
+			pickle.dump(transformer, handle)
 
-	return tfidf
+	return transformer
+
+def get_summary_by_document(transformer, documentName):
+	sentences = read_document(documentName)
+	new_tfidf = transformer.transform(sentences)
+	cs = cosine_similarity(new_tfidf, new_tfidf)
+	sentenceIndexes = cs[0].argsort()[:-5:-1]
+	print(sentenceIndexes);
+	for index in sentenceIndexes:
+		print(sentences[index])
 
 if __name__ =="__main__":
 	LOAD_FROM_PICKLE = 1;
+	FILE_NAME = "06_7.xml"
 
-	tfidf = calculate_tfidf(LOAD_FROM_PICKLE)
-	print(tfidf);
+	transformer = calculate_tfidf(LOAD_FROM_PICKLE)
+	get_summary_by_document(transformer, FILE_NAME)
 
-	sentences = read_document("06_1.xml")
-	print(sentences);
-
+	#print(sentences);
 
 
 
