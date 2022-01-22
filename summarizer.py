@@ -132,7 +132,7 @@ def get_summary_by_document(transformer, documentName):
 	sentences = read_document(documentName)
 	new_tfidf = transformer.transform(sentences)
 	cs = cosine_similarity(new_tfidf, new_tfidf)
-	sentenceIndexes = cs[0].argsort()[:-5:-1]
+	sentenceIndexes = cs[0].argsort()[:-6:-1]
 	print(sentenceIndexes);
 	for index in sentenceIndexes:
 		print(sentences[index])
