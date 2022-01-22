@@ -49,6 +49,7 @@ def create_document_collection(documentTuples):
 			corpus += [line]
 	return corpus
 
+# Taken from my first assignment
 def preprocess(lines):
 
 	processed = [];
@@ -83,6 +84,7 @@ def preprocess(lines):
 
 	return processed 	# you may change the return value if you need.
 
+# Taken from my first assignment
 def decontracted(phrase):
     # specific
     phrase = re.sub(r"won\'t", "will not", phrase)
@@ -139,19 +141,10 @@ def get_summary_by_document(transformer, documentName):
 
 if __name__ =="__main__":
 	LOAD_FROM_PICKLE = 1;
-	FILE_NAME = "06_7.xml"
+	FILE_NAME = "08_3.xml"
 
 	transformer = calculate_tfidf(LOAD_FROM_PICKLE)
 	get_summary_by_document(transformer, FILE_NAME)
-
-	#print(sentences);
-
-
-
-
-
-
-
 
 
 
